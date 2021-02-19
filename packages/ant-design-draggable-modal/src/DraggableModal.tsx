@@ -12,6 +12,9 @@ export interface DraggableModalProps extends ModalProps {
     initialX?: number
     initialY?: number
     resizable?: boolean
+    // TODO: rename to min/max borders
+    minPosition?: {x?: number, y?: number}
+    maxPosition?: {x?: number, y?: number}
 }
 
 export const DraggableModal: FunctionComponent<DraggableModalProps> = (
@@ -26,12 +29,13 @@ export const DraggableModal: FunctionComponent<DraggableModalProps> = (
         throw new Error('No Provider')
     }
 
+    const initialWidth = props.initialWidth || props.width as number
     const { dispatch, state } = modalProvider
     const modalState = getModalState({
         state,
         id,
         initialHeight: props.initialHeight,
-        initialWidth: props.initialWidth,
+        initialWidth,
         initialX: props.initialX,
         initialY: props.initialY,
     })
@@ -40,8 +44,28 @@ export const DraggableModal: FunctionComponent<DraggableModalProps> = (
       console.warn('Provide initialHeight and initialWidth or set resizable to false.')
     }
 
+    const { maxPosition } = props
+    React.useEffect(() => {
+      const value = {
+        x: null, 
+        y: null,
+        ...maxPosition
+      }
+      dispatch({type: 'updateMaxPosition', id, value})
+    }, [maxPosition, dispatch])
+
+    const { minPosition } = props
+    React.useEffect(() => {
+      const value = {
+        x: null, 
+        y: null,
+        ...minPosition
+      }
+      dispatch({type: 'updateMinPosition', id, value})
+    }, [minPosition, dispatch])
+
     // We do this so that we don't re-render all modals for every state change.
     // DraggableModalInner uses React.memo, so it only re-renders if
     // if props change (e.g. modalState).
-    return <DraggableModalInner id={id} dispatch={dispatch} modalState={modalState} {...props} />
+    return <DraggableModalInner id={id} dispatch={dispatch} modalState={modalState} {...props} initialWidth={initialWidth} />
 }

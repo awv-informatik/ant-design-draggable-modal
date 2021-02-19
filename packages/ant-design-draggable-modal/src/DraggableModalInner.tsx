@@ -19,6 +19,8 @@ interface ContextProps extends DraggableModalContextMethods {
     initialX?: number
     initialY?: number
     resizable?: boolean
+    minPosition?: {x?: number, y?: number}
+    maxPosition?: {x?: number, y?: number}
 }
 
 export type DraggableModalInnerProps = ModalProps & { children?: React.ReactNode } & ContextProps
@@ -35,6 +37,8 @@ function DraggableModalInnerNonMemo({
     initialX,
     initialY,
     resizable = true,
+    minPosition,
+    maxPosition,
     ...otherProps
 }: DraggableModalInnerProps) {
     // Call on mount and unmount.
@@ -48,12 +52,12 @@ function DraggableModalInnerNonMemo({
     useEffect(() => {
         if (visible !== visiblePrevious) {
             if (visible) {
-                dispatch({ type: 'show', id })
+                dispatch({ type: 'show', id, minPosition, maxPosition })
             } else {
                 dispatch({ type: 'hide', id })
             }
         }
-    }, [visible, visiblePrevious, id, dispatch])
+    }, [visible, visiblePrevious, id, dispatch, minPosition, maxPosition])
 
     const { zIndex, x, y, width, height } = modalState
 
@@ -65,9 +69,11 @@ function DraggableModalInnerNonMemo({
 
     const onFocus = useCallback(() => dispatch({ type: 'focus', id }), [id, dispatch])
 
-    const onDragWithID = useCallback(args => dispatch({ type: 'drag', id, ...args }), [
+    const onDragWithID = useCallback(args => dispatch({ type: 'drag', id, ...args, minPosition, maxPosition }), [
         dispatch,
         id,
+        minPosition,
+        maxPosition,
     ])
 
     const onResizeWithID = useCallback(args => dispatch({ type: 'resize', id, ...args }), [
