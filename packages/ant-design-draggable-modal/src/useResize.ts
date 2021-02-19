@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 interface InitialState {
     initX: number
     initY: number
-    initWidth: number
-    initHeight: number
+    initWidth?: number
+    initHeight?: number
     mouseDownX: number
     mouseDownY: number
 }
@@ -13,9 +13,9 @@ interface InitialState {
 export const useResize = (
     x: number,
     y: number,
-    width: number,
-    height: number,
-    onResize: (args: { x: number; y: number; width: number; height: number }) => void,
+    width: number | undefined,
+    height: number | undefined,
+    onResize: (args: { x: number; y: number; width: number | undefined; height: number | undefined }) => void,
 ): ((e: React.MouseEvent) => void) => {
     const [dragging, setDragging] = useState(false)
     const [initialDragState, setInitialDragState] = useState<InitialState>({
@@ -56,8 +56,8 @@ export const useResize = (
                 } = initialDragState
                 let dx = e.clientX - mouseDownX
                 let dy = e.clientY - mouseDownY
-                const width = initWidth + dx
-                const height = initHeight + dy
+                const width = initWidth ? initWidth + dx : undefined
+                const height = initHeight ? initHeight + dy : undefined
                 return onResize({ x: initX, y: initY, width, height })
             }
         }

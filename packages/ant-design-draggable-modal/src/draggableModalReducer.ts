@@ -11,8 +11,8 @@ export type ModalID = string
 export interface ModalState {
     x: number
     y: number
-    width: number
-    height: number
+    width: number | undefined
+    height: number | undefined
     zIndex: number
     visible: boolean
 }
@@ -46,10 +46,10 @@ export const initialModalState: ModalState = {
 
 const getInitialModalState = ({
     state,
-    initialWidth = initialModalState.width,
-    initialHeight = initialModalState.height,
-    initialX = state.windowSize.width / 2 - initialWidth / 2,
-    initialY = state.windowSize.height / 2 - initialHeight / 2,
+    initialWidth,
+    initialHeight,
+    initialX = 0,
+    initialY = 0,
 }: {
     state: ModalsState
     initialWidth?: number
@@ -107,11 +107,11 @@ const clampDrag = (
     windowHeight: number,
     x: number,
     y: number,
-    width: number,
-    height: number,
+    width: number | undefined,
+    height: number | undefined,
 ): { x: number; y: number } => {
-    const maxX = windowWidth - width
-    const maxY = windowHeight - height
+    const maxX = windowWidth - (width || 0)
+    const maxY = windowHeight - (height || 0)
     const clampedX = clamp(0, maxX, x)
     const clampedY = clamp(0, maxY, y)
     return { x: clampedX, y: clampedY }

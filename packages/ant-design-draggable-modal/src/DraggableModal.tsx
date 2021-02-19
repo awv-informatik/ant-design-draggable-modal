@@ -36,6 +36,10 @@ export const DraggableModal: FunctionComponent<DraggableModalProps> = (
         initialY: props.initialY,
     })
 
+    if (props.resizable && (!props.initialHeight || !props.initialWidth)) {
+      console.warn('Provide initialHeight and initialWidth or set resizable to false.')
+    }
+
     // We do this so that we don't re-render all modals for every state change.
     // DraggableModalInner uses React.memo, so it only re-renders if
     // if props change (e.g. modalState).
