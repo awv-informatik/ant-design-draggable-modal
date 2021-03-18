@@ -43,7 +43,7 @@ function DraggableModalInnerNonMemo({
 }: DraggableModalInnerProps) {
     // Call on mount and unmount.
     useEffect(() => {
-        dispatch({ type: 'mount', id, intialState: { initialWidth, initialHeight, initialX, initialY } })
+        dispatch({ type: 'mount', id, intialState: { initialWidth, initialHeight, initialX, initialY, minPosition, maxPosition } })
         return () => dispatch({ type: 'unmount', id })
     }, [dispatch, id, initialWidth, initialHeight])
 

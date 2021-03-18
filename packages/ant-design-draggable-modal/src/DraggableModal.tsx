@@ -5,6 +5,7 @@ import { DraggableModalContext } from './DraggableModalContext'
 import { DraggableModalInner } from './DraggableModalInner'
 import { getModalState } from './draggableModalReducer'
 import { ModalProps } from 'antd/lib/modal'
+import { getWindowSize } from './getWindowSize'
 
 export interface DraggableModalProps extends ModalProps {
     initialWidth?: number
@@ -38,6 +39,8 @@ export const DraggableModal: FunctionComponent<DraggableModalProps> = (
         initialWidth,
         initialX: props.initialX,
         initialY: props.initialY,
+        minPosition: props.minPosition,
+        maxPosition: props.maxPosition,
     })
 
     if (props.resizable && (!props.initialHeight || !props.initialWidth)) {

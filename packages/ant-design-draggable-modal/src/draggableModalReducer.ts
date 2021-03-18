@@ -15,8 +15,8 @@ export interface ModalState {
     height: number | undefined
     zIndex: number
     visible: boolean
-    minPosition: {x: number | null, y: number | null}
-    maxPosition: {x: number | null, y: number | null}
+    minPosition: { x: number | null; y: number | null }
+    maxPosition: { x: number | null; y: number | null }
 }
 
 // State of all modals.
@@ -48,22 +48,36 @@ export const initialModalsState: ModalsState = {
 //     maxPosition: {x: null, y: null},
 // }
 
+function getInitialCoord(initialVal?: number, minVal?: number, maxVal?: number) {
+    if (initialVal === undefined) {
+        return minVal || 0
+    } else {
+        let newVal = maxVal !== undefined && initialVal > maxVal ? maxVal : initialVal
+        newVal = minVal !== undefined && initialVal < minVal ? minVal : initialVal
+        return newVal
+    }
+}
+
 const getInitialModalState = ({
     initialWidth,
     initialHeight,
     initialX = 0,
     initialY = 0,
+    minPosition,
+    maxPosition,
 }: {
     initialWidth?: number
     initialHeight?: number
     initialX?: number
     initialY?: number
+    minPosition?: { x?: number; y?: number }
+    maxPosition?: { x?: number; y?: number }
 }) => {
     return {
         width: initialWidth,
         height: initialHeight,
-        x: initialX,
-        y: initialY,
+        x: getInitialCoord(initialX, minPosition?.x, maxPosition?.x || getWindowSize().width),
+        y: getInitialCoord(initialY, minPosition?.y, maxPosition?.y || getWindowSize().height),
     }
 }
 
@@ -85,6 +99,8 @@ export type Action =
               initialHeight?: number
               initialX?: number
               initialY?: number
+              minPosition?: { x?: number; y?: number }
+              maxPosition?: { x?: number; y?: number }
           }
       }
     | { type: 'windowResize'; size: { width: number; height: number } }
@@ -107,13 +123,13 @@ export type Action =
     | {
           type: 'updateMinPosition'
           id: ModalID
-          value: {x: number | null, y: number | null}
-    }
+          value: { x: number | null; y: number | null }
+      }
     | {
           type: 'updateMaxPosition'
           id: ModalID
-          value: {x: number | null, y: number | null}
-    }
+          value: { x: number | null; y: number | null }
+      }
 
 export const getModalState = ({
     state,
@@ -122,6 +138,8 @@ export const getModalState = ({
     initialHeight,
     initialX,
     initialY,
+    minPosition,
+    maxPosition,
 }: {
     state: ModalsState
     id: ModalID
@@ -129,8 +147,10 @@ export const getModalState = ({
     initialHeight?: number
     initialX?: number
     initialY?: number
+    maxPosition?: { x?: number; y?: number }
+    minPosition?: { x?: number; y?: number }
 }): ModalState =>
-    state.modals[id] || getInitialModalState({ initialWidth, initialHeight, initialX, initialY })
+    state.modals[id] || getInitialModalState({ initialWidth, initialHeight, initialX, initialY, minPosition, maxPosition })
 
 const getNextZIndex = (state: ModalsState, id: string): number =>
     getModalState({ state, id }).zIndex === state.maxZIndex ? state.maxZIndex : state.maxZIndex + 1
@@ -149,7 +169,7 @@ const clampDrag = (
     const maxY_ = maxY - height
     const clampedX = clamp(minX, maxX_, x)
     const clampedY = clamp(minY, maxY_, y)
-    const res =  { x: clampedX, y: clampedY }
+    const res = { x: clampedX, y: clampedY }
     return res
 }
 
@@ -205,8 +225,12 @@ export const draggableModalReducer = (state: ModalsState, action: Action): Modal
                             action.y,
                             state.modals[action.id].width || 0,
                             state.modals[action.id].height || 0,
-                            modal.maxPosition.x ? Math.min(modal.maxPosition.x, state.windowSize.width) : state.windowSize.width,
-                            modal.maxPosition.y ? Math.min(modal.maxPosition.y, state.windowSize.height) : state.windowSize.height,
+                            modal.maxPosition.x
+                                ? Math.min(modal.maxPosition.x, state.windowSize.width)
+                                : state.windowSize.width,
+                            modal.maxPosition.y
+                                ? Math.min(modal.maxPosition.y, state.windowSize.height)
+                                : state.windowSize.height,
                             action.minPosition?.x || 0,
                             action.minPosition?.y || 0,
                         ),
@@ -221,8 +245,12 @@ export const draggableModalReducer = (state: ModalsState, action: Action): Modal
                 modalState.y,
                 modalState.width || 0,
                 modalState.height || 0,
-                modalState.maxPosition.x ? Math.min(modalState.maxPosition.x, state.windowSize.width) : state.windowSize.width,
-                modalState.maxPosition.y ? Math.min(modalState.maxPosition.y, state.windowSize.height) : state.windowSize.height,
+                modalState.maxPosition.x
+                    ? Math.min(modalState.maxPosition.x, state.windowSize.width)
+                    : state.windowSize.width,
+                modalState.maxPosition.y
+                    ? Math.min(modalState.maxPosition.y, state.windowSize.height)
+                    : state.windowSize.height,
                 action.minPosition?.x || 0,
                 action.minPosition?.y || 0,
             )
@@ -309,10 +337,14 @@ export const draggableModalReducer = (state: ModalsState, action: Action): Modal
                         modalState.y,
                         modalState.width || 0,
                         modalState.height || 0,
-                        modalState.maxPosition.x ? Math.min(modalState.x, state.windowSize.width) : state.windowSize.width,
-                        modalState.maxPosition.y ? Math.min(modalState.y, state.windowSize.height) : state.windowSize.height,
+                        modalState.maxPosition.x
+                            ? Math.min(modalState.x, state.windowSize.width)
+                            : state.windowSize.width,
+                        modalState.maxPosition.y
+                            ? Math.min(modalState.y, state.windowSize.height)
+                            : state.windowSize.height,
                         0,
-                        0
+                        0,
                     )
                     // const size = clampResize(
                     //     state.windowSize.width,
@@ -331,31 +363,31 @@ export const draggableModalReducer = (state: ModalsState, action: Action): Modal
             }
         case 'updateMinPosition':
             return {
-              ...state,
-              modals: {
-                ...state.modals,
-                [action.id]: {
-                  ...state.modals[action.id],
-                  minPosition: {
-                    ...state.modals[action.id].minPosition,
-                    ...action.value
-                  }
-                }
-              }
+                ...state,
+                modals: {
+                    ...state.modals,
+                    [action.id]: {
+                        ...state.modals[action.id],
+                        minPosition: {
+                            ...state.modals[action.id].minPosition,
+                            ...action.value,
+                        },
+                    },
+                },
             }
         case 'updateMaxPosition':
             return {
-              ...state,
-              modals: {
-                ...state.modals,
-                [action.id]: {
-                  ...state.modals[action.id],
-                  maxPosition: {
-                    ...state.modals[action.id].maxPosition,
-                    ...action.value
-                  }
-                }
-              }
+                ...state,
+                modals: {
+                    ...state.modals,
+                    [action.id]: {
+                        ...state.modals[action.id],
+                        maxPosition: {
+                            ...state.modals[action.id].maxPosition,
+                            ...action.value,
+                        },
+                    },
+                },
             }
         default:
             throw new Error()
